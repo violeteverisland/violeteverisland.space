@@ -1,0 +1,49 @@
+// localStorage相关函数
+        const USER_STORAGE_KEY = 'newyear_user_session';
+        
+        // 检查localStorage中是否有登录信息
+        function checkLocalStorage() {
+            console.log('检查localStorage...');
+            const userData = localStorage.getItem(USER_STORAGE_KEY);
+            console.log('获取到的数据:', userData);
+            
+            if (userData) {
+                try {
+                    const data = JSON.parse(userData);
+                    // 检查是否过期（7天）
+                    const expiryTime = 7 * 24 * 60 * 60 * 1000; // 7天
+                    if (new Date().getTime() - data.timestamp < expiryTime) {
+                        console.log('找到有效用户数据:', data);
+                        return data;
+                    } else {
+                        console.log('用户数据已过期，清除');
+                        localStorage.removeItem(USER_STORAGE_KEY);
+                    }
+                } catch (e) {
+                    console.error('解析用户数据失败:', e);
+                    localStorage.removeItem(USER_STORAGE_KEY);
+                }
+            }
+            return null;
+        }
+        
+        // 保存用户数据到localStorage
+        function saveUserToLocal(userInfo) {
+            console.log('保存用户数据:', userInfo);
+            const dataToSave = {
+                groupId: userInfo.groupId,
+                email: userInfo.email,
+                gridX: userInfo.gridX,
+                gridY: userInfo.gridY,
+                userId: userInfo.userId || Date.now(), // 如果没有userId，使用时间戳
+                timestamp: new Date().getTime()
+            };
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(dataToSave));
+            console.log('保存成功:', dataToSave);
+        }
+        
+        // 清除用户数据
+        function clearUserData() {
+            localStorage.removeItem(USER_STORAGE_KEY);
+            console.log('清除用户数据');
+        }
