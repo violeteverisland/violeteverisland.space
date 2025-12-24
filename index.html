@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新年合影墙</title>
+    <style>
+        /* 样式保持不变... */
+        /* 开场动画 */
+        .welcome-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeOut 1s ease-out 2s forwards;
+        }
+        
+        .welcome-text {
+            color: white;
+            font-size: 3em;
+            font-family: Arial, sans-serif;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: pulse 1s infinite alternate;
+        }
+        
+        @keyframes fadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: translateY(-20px);
+            animation: slideIn 0.5s ease forwards;
+        }
+        
+        @keyframes slideIn {
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* 网格墙样式 */
+        #grid-wall {
+            display: none;
+            padding: 20px;
+        }
+        
+        /* 修改现有的.grid-container样式 */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(20, 1fr);
+    border: 2px solid #333;
+    background-image: url('img.jpg');
+    background-size: cover;
+    background-position: center;
+    
+    /* 响应式宽度 */
+    width: 95vw; /* 使用视口宽度 */
+    max-width: 800px; /* 桌面端最大宽度 */
+    height: 95vw; /* 保持正方形 */
+    max-height: 800px; /* 桌面端最大高度 */
+    
+    /* 居中 */
+    margin: 0 auto;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .grid-container {
+        width: 95vw;
+        height: 95vw;
+        max-width: 95vw;
+        max-height: 95vw;
+    }
+    
+    .grid-cell {
+        font-size: 6px !important; /* 更小的字体 */
+    }
+    
+    #grid-wall h1 {
+        font-size: 20px;
+        margin: 10px 0;
+    }
+}
+
+/* 超小屏幕（手机竖屏） */
+@media (max-width: 480px) {
+    .grid-container {
+        width: 100vw;
+        height: 100vw;
+        border: none; /* 移除边框节省空间 */
+    }
+    
+    .grid-cell {
+        font-size: 5px !important;
+        border-width: 0.5px; /* 更细的边框 */
+    }
+    
+    .modal-content {
+        width: 90vw;
+        padding: 20px;
+    }
+}
+        
+        .grid-cell {
+    /* 固定格子尺寸 */
+    min-width: 0; /* 重要：允许内容溢出时收缩 */
+    min-height: 0;
+    overflow: hidden; /* 隐藏溢出的文字 */
+    
+    /* 文字自适应 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    
+    /* 文字自适应大小 */
+    font-size: calc(10px - 0.3vmin); /* 基础大小，随视口微调 */
+    line-height: 1.2;
+    
+    /* 固定边框 */
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    position: relative;
+}
+
+/* 长文字处理 */
+.grid-cell .text-content {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 1px 2px;
+    box-sizing: border-box;
+}
+
+/* 响应式字体调整 */
+@media (max-width: 768px) {
+    .grid-cell {
+        font-size: calc(8px - 0.4vmin);
+    }
+}
+        
+        .grid-cell:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .grid-cell.occupied {
+			background: none !important; /* 移除背景色 */
+			color: white;
+			font-weight: bold;
+			text-shadow: 
+				0 0 3px rgba(0,0,0,0.8), /* 文字阴影增强可读性 */
+				0 0 5px rgba(0,0,0,0.5),
+				2px 2px 4px rgba(0,0,0,0.9);
+			border: 1px solid rgba(255, 255, 255, 0.3); /* 保留边框 */
+		}
+
+		.grid-cell.occupied.current-user {
+			border: 2px solid #4CAF50; /* 用边框标识当前用户 */
+			box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+		}
+        
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        #screenshot-btn {
+            padding: 15px 30px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        /* 添加用户信息显示 */
+        .user-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        
+        .logout-btn {
+            margin-left: 20px;
+            padding: 5px 15px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+		/* 添加到CSS中 */
+.copyright-footer {
+    margin-top: 40px;
+    padding: 20px 0;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    border-top: 1px solid #eee;
+    background: rgba(255, 255, 255, 0.9);
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+.copyright-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.copyright-footer a {
+    color: #667eea;
+    text-decoration: none;
+    margin: 0 5px;
+    transition: color 0.3s;
+}
+
+.copyright-footer a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+    </style>
+</head>
+<body>
+    <!-- 开场动画 -->
+    <div class="welcome-animation">
+        <div class="welcome-text">新年快乐！</div>
+    </div>
+    
+    <!-- 注册模态框 -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <h2 style="text-align: center; margin-bottom: 30px;">加入新年合影墙</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="groupId">请输入你想要参加合影的id？</label>
+                    <input type="text" id="groupId" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">请输入可以联系到你的电子邮箱</label>
+                    <input type="email" id="email" required>
+                </div>
+                <button type="submit" class="submit-btn">加入合影</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 网格墙 -->
+    <div id="grid-wall">
+        <h1 style="text-align: center;">新年合影墙</h1>
+        <div class="user-info">
+            欢迎：<span id="userName"></span>
+            <button id="logoutBtn" class="logout-btn">退出登录</button>
+        </div>
+        <div class="grid-container" id="gridContainer"></div>
+        <div class="controls">
+            <button id="screenshot-btn">合影留念</button>
+        </div>
+		<!-- 添加版权声明 -->
+<footer class="copyright-footer">
+    <div class="copyright-content">
+        <p>© 2026 新年合影墙 | Designed with ❤️ by 
+            <a href="mailto:violeteverisland@163.com">violeteverisland@163.com</a> |
+            <a href="https://github.com/violeteverisland" target="_blank">GitHub</a> |
+            <a href="https://space.bilibili.com/631367902" target="_blank">B站：弗洛洛会监</a>
+        </p>
+    </div>
+</footer>
+    </div>
+
+    <script>
+        // 配置后端API地址
+        const API_BASE_URL = 'http://199.188.198.35:7655/api';
+        
+        // localStorage相关函数
+        const USER_STORAGE_KEY = 'newyear_user_session';
+        
+        // 检查localStorage中是否有登录信息
+        function checkLocalStorage() {
+            console.log('检查localStorage...');
+            const userData = localStorage.getItem(USER_STORAGE_KEY);
+            console.log('获取到的数据:', userData);
+            
+            if (userData) {
+                try {
+                    const data = JSON.parse(userData);
+                    // 检查是否过期（7天）
+                    const expiryTime = 7 * 24 * 60 * 60 * 1000; // 7天
+                    if (new Date().getTime() - data.timestamp < expiryTime) {
+                        console.log('找到有效用户数据:', data);
+                        return data;
+                    } else {
+                        console.log('用户数据已过期，清除');
+                        localStorage.removeItem(USER_STORAGE_KEY);
+                    }
+                } catch (e) {
+                    console.error('解析用户数据失败:', e);
+                    localStorage.removeItem(USER_STORAGE_KEY);
+                }
+            }
+            return null;
+        }
+        
+        // 保存用户数据到localStorage
+        function saveUserToLocal(userInfo) {
+            console.log('保存用户数据:', userInfo);
+            const dataToSave = {
+                groupId: userInfo.groupId,
+                email: userInfo.email,
+                gridX: userInfo.gridX,
+                gridY: userInfo.gridY,
+                userId: userInfo.userId || Date.now(), // 如果没有userId，使用时间戳
+                timestamp: new Date().getTime()
+            };
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(dataToSave));
+            console.log('保存成功:', dataToSave);
+        }
+        
+        // 清除用户数据
+        function clearUserData() {
+            localStorage.removeItem(USER_STORAGE_KEY);
+            console.log('清除用户数据');
+        }
+        
+        // 页面加载时的主逻辑
+        window.addEventListener('load', function() {
+            console.log('页面加载完成，检查登录状态...');
+            
+            // 检查是否有保存的用户数据
+            const savedUser = checkLocalStorage();
+            
+            setTimeout(() => {
+                if (savedUser) {
+                    console.log('用户已登录，自动进入网格墙');
+                    // 已登录，直接进入网格墙
+                    document.getElementById('registerModal').style.display = 'none';
+                    document.getElementById('grid-wall').style.display = 'block';
+                    document.getElementById('userName').textContent = savedUser.groupId;
+                    initGridWall(savedUser.groupId, savedUser.gridX, savedUser.gridY);
+                } else {
+                    console.log('用户未登录，显示注册框');
+                    // 未登录，显示注册框
+                    document.getElementById('registerModal').style.display = 'flex';
+                }
+            }, 2500); // 等待动画结束
+        });
+        
+        // 处理注册表单提交
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const groupId = document.getElementById('groupId').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            console.log('提交注册:', { groupId, email });
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        groupId: groupId,
+                        email: email
+                    })
+                });
+                
+                console.log('响应状态:', response.status);
+                const result = await response.json();
+                console.log('响应结果:', result);
+                
+                if (result.success) {
+                    // 保存用户数据到localStorage
+                    saveUserToLocal({
+                        groupId: groupId,
+                        email: email,
+                        gridX: result.gridX,
+                        gridY: result.gridY,
+                        userId: result.userId // 确保后端返回userId
+                    });
+                    
+                    // 隐藏注册框
+                    document.getElementById('registerModal').style.display = 'none';
+                    // 显示网格墙
+                    document.getElementById('grid-wall').style.display = 'block';
+                    // 显示用户名
+                    document.getElementById('userName').textContent = groupId;
+                    // 初始化网格并定位到分配的格子
+                    initGridWall(groupId, result.gridX, result.gridY);
+                } else {
+                    alert(result.message || '注册失败');
+                }
+            } catch (error) {
+                console.error('注册错误:', error);
+                alert('网络错误，请稍后重试');
+            }
+        });
+        
+        // 退出登录功能
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            if (confirm('确定要退出登录吗？')) {
+                clearUserData();
+                // 刷新页面
+                location.reload();
+            }
+        });
+        
+        // 初始化网格墙
+        async function initGridWall(userId, gridX, gridY) {
+            console.log('初始化网格墙，用户:', userId, '位置:', gridX, gridY);
+            
+            const container = document.getElementById('gridContainer');
+            
+            // 清空现有网格
+            container.innerHTML = '';
+            
+            // 获取所有用户数据
+            let users = [];
+            try {
+                const response = await fetch(`${API_BASE_URL}/users`);
+                users = await response.json();
+                console.log('获取到用户列表:', users.length, '个用户');
+            } catch (error) {
+                console.error('获取用户数据失败:', error);
+            }
+            
+            // 创建20x20网格
+            for (let y = 0; y < 20; y++) {
+                for (let x = 0; x < 20; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    
+                    // 检查该格子是否有用户
+                    const userInCell = users.find(u => u.gridX === x && u.gridY === y);
+                    if (userInCell) {
+                        cell.classList.add('occupied');
+                        cell.textContent = userInCell.groupId;
+                        
+                        // 如果是当前用户，高亮显示
+                        if (userInCell.groupId === userId) {
+                            cell.style.background = 'rgba(76, 175, 80, 0.8)';
+                        }
+                    }
+                    
+                    // 点击格子可以选择（如果未被占用）
+                    cell.addEventListener('click', function() {
+                        if (!this.classList.contains('occupied')) {
+                            // 更新用户格子位置
+                            updateUserGrid(userId, x, y);
+                            // 更新显示
+                            this.classList.add('occupied');
+                            this.textContent = userId;
+                            this.style.background = 'rgba(76, 175, 80, 0.8)';
+                            
+                            // 更新localStorage中的位置
+                            const savedUser = checkLocalStorage();
+                            if (savedUser) {
+                                savedUser.gridX = x;
+                                savedUser.gridY = y;
+                                saveUserToLocal(savedUser);
+                            }
+                        }
+                    });
+                    
+                    container.appendChild(cell);
+                }
+            }
+            
+            // 滚动到用户的格子位置
+            setTimeout(() => {
+                const userCell = container.querySelector(`.grid-cell[data-x="${gridX}"][data-y="${gridY}"]`);
+                if (userCell) {
+                    userCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+        
+        // 更新用户格子位置
+        async function updateUserGrid(userId, x, y) {
+            try {
+                await fetch(`${API_BASE_URL}/update-grid`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, gridX: x, gridY: y })
+                });
+                console.log('更新格子位置成功:', x, y);
+            } catch (error) {
+                console.error('更新格子失败:', error);
+            }
+        }
+        
+        // 截图功能
+        
+        // 截图功能 - 只截取网格墙
+document.getElementById('screenshot-btn').addEventListener('click', function() {
+    if (typeof html2canvas === 'undefined') {
+        alert('截图功能需要加载html2canvas库，请稍后再试');
+        return;
+    }
+    
+    // 只截取网格容器部分
+    const gridContainer = document.getElementById('gridContainer');
+    
+    // 创建截图选项
+    const options = {
+        backgroundColor: null, // 背景透明
+        scale: 2, // 提高分辨率
+        useCORS: true, // 允许跨域图片
+        allowTaint: true, // 允许taint canvas
+        logging: false, // 关闭日志
+        onclone: function(clonedDoc) {
+            // 在克隆的文档中隐藏不需要的元素
+            const clonedGrid = clonedDoc.getElementById('gridContainer');
+            // 确保克隆的网格样式正确
+            clonedGrid.style.width = '800px';
+            clonedGrid.style.height = '800px';
+        }
+    };
+    
+    // 显示加载提示
+    const originalText = this.textContent;
+    this.textContent = '正在生成截图...';
+    this.disabled = true;
+    
+    html2canvas(gridContainer, options).then(canvas => {
+        // 恢复按钮状态
+        this.textContent = originalText;
+        this.disabled = false;
+        
+        // 创建下载链接
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().slice(0,19).replace(/[:]/g, '-');
+        link.download = `新年合影-${timestamp}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        
+        // 创建预览
+        showScreenshotPreview(canvas, link);
+        
+    }).catch(error => {
+        console.error('截图失败:', error);
+        alert('截图失败，请重试');
+        this.textContent = originalText;
+        this.disabled = false;
+    });
+});
+
+// 显示截图预览
+function showScreenshotPreview(canvas, downloadLink) {
+    // 创建预览模态框
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    `;
+    
+    const previewContent = document.createElement('div');
+    previewContent.style.cssText = `
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        max-width: 90%;
+        max-height: 90%;
+        overflow: auto;
+    `;
+    
+    // 缩小预览图
+    const previewCanvas = document.createElement('canvas');
+    previewCanvas.width = canvas.width / 2;
+    previewCanvas.height = canvas.height / 2;
+    const ctx = previewCanvas.getContext('2d');
+    ctx.drawImage(canvas, 0, 0, previewCanvas.width, previewCanvas.height);
+    
+    const img = document.createElement('img');
+    img.src = previewCanvas.toDataURL('image/png');
+    img.style.cssText = `
+        max-width: 100%;
+        max-height: 70vh;
+        border: 1px solid #ddd;
+    `;
+    
+    // 创建按钮容器
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.marginTop = '20px';
+    
+    // 下载按钮
+    const downloadBtn = document.createElement('button');
+    downloadBtn.textContent = '下载图片';
+    downloadBtn.style.cssText = `
+        padding: 10px 20px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        margin-right: 10px;
+        cursor: pointer;
+    `;
+    downloadBtn.onclick = function() {
+        downloadLink.click();
+        modal.remove();
+    };
+    
+    // 关闭按钮
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '关闭';
+    closeBtn.style.cssText = `
+        padding: 10px 20px;
+        background: #666;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    `;
+    closeBtn.onclick = function() {
+        modal.remove();
+    };
+    
+    buttonContainer.appendChild(downloadBtn);
+    buttonContainer.appendChild(closeBtn);
+    
+    previewContent.appendChild(img);
+    previewContent.appendChild(buttonContainer);
+    modal.appendChild(previewContent);
+    document.body.appendChild(modal);
+    
+    // 点击背景关闭
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+        
+        // 调试：在控制台查看当前存储的数据
+        window.debugStorage = function() {
+            console.log('当前localStorage:', localStorage.getItem(USER_STORAGE_KEY));
+        };
+    </script>
+    
+    <!-- 引入html2canvas库（用于截图） -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</body>
+</html>
